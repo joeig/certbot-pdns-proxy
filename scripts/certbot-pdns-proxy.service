@@ -1,0 +1,16 @@
+[Unit]
+Description=CertBot PowerDNS Proxy
+After=network.target
+
+[Service]
+Type=simple
+User=certbotproxy
+Group=certbotproxy
+WorkingDirectory=/opt/certbot-pdns-proxy/
+ExecStart=/opt/certbot-pdns-proxy/certbot-pdns-proxy
+ExecStop=/bin/kill -9 $MAINPID
+RestartSec=15
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

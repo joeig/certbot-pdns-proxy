@@ -1,0 +1,21 @@
+---
+version: '3'
+services:
+  mysql:
+    image: mariadb:10.1
+    environment:
+      MYSQL_ROOT_PASSWORD: supersecret
+  pdns:
+    image: psitrax/powerdns
+    ports:
+      - "8080:80"
+      - "53:53"
+      - "53:53/udp"
+    environment:
+      MYSQL_USER: root
+      MYSQL_PASS: supersecret
+    command: --webserver=yes --webserver-address=0.0.0.0 --webserver-port=80 --webserver-password=webserversecret --webserver-allow-from=0.0.0.0/0 --api=yes --api-key=secret --api-readonly=no --loglevel=7
+    links:
+      - mysql
+    depends_on:
+      - mysql

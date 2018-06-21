@@ -1,0 +1,28 @@
+---
+server:
+  # Proxy API listener:
+  listenAddress: 127.0.0.1:8000
+  # TLS certificate file:
+  certFile: server.crt
+  # TLS key file:
+  keyFile: server.key
+
+powerdns:
+  # PowerDNS API base URL:
+  baseURL: http://127.0.0.1:8080/
+  # PowerDNS vHost (usually "localhost"):
+  vhost: localhost
+  # PowerDNS API key:
+  apiKey: secret
+
+miscellaneous:
+  # Default TTL for TXT records:
+  defaultTTL: 10
+
+authTable:
+  - username: foo
+    password: bar
+    # FQDN regular expression:
+    fqdnRegex: ^_acme-challenge.*\.example\.com$
+    # PowerDNS zone identifier:
+    domain: example.com

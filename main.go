@@ -87,7 +87,7 @@ func checkAuthorization(r *http.Request) (string, *Auth, error) {
 func Authenticate(w http.ResponseWriter, r *http.Request) {
 	fqdn, auth, err := checkAuthorization(r)
 	if err != nil {
-		log.Print(err)
+		log.Print("Authentication failed:", err)
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -103,8 +103,8 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 
 	pdns := powerdns.NewClient(C.PowerDNS.BaseURL, C.PowerDNS.VHost, auth.Domain, C.PowerDNS.APIKey)
 	if _, err := pdns.AddRecord(fqdn, "TXT", C.Miscellaneous.DefaultTTL, []string{validation}); err != nil {
-		log.Print(err)
-		w.WriteHeader(http.StatusBadRequest)
+		log.Print("Bad PowerDNS API response:", err)
+		w.WriteHeader(http.StatusBadGateway)
 		return
 	}
 
@@ -115,15 +115,15 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 func Cleanup(w http.ResponseWriter, r *http.Request) {
 	fqdn, auth, err := checkAuthorization(r)
 	if err != nil {
-		log.Print(err)
+		log.Print("Authorization failed:", err)
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
 	pdns := powerdns.NewClient(C.PowerDNS.BaseURL, C.PowerDNS.VHost, auth.Domain, C.PowerDNS.APIKey)
 	if _, err := pdns.DeleteRecord(fqdn, "TXT"); err != nil {
-		log.Print(err)
-		w.WriteHeader(http.StatusBadRequest)
+		log.Print("Bad PowerDNS API response:", err)
+		w.WriteHeader(http.StatusBadGateway)
 		return
 	}
 
@@ -145,10 +145,18 @@ func parseConfig(config *Config) {
 	}
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.RemoteAddr, r.RequestURI)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func runServer() {
 	router := mux.NewRouter()
 	router.HandleFunc("/v1/authenticate", Authenticate).Methods("POST")
 	router.HandleFunc("/v1/cleanup", Cleanup).Methods("DELETE")
+	router.Use(loggingMiddleware)
 	log.Fatal(http.ListenAndServeTLS(C.Server.ListenAddress, C.Server.CertFile, C.Server.KeyFile, router))
 }
 

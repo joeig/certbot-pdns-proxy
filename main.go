@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
@@ -31,6 +32,8 @@ func runServer() {
 }
 
 func main() {
-	parseConfig(&C)
+	configFile := flag.String("config", "config.yml", "Configuration file")
+	flag.Parse()
+	parseConfig(&C, configFile)
 	runServer()
 }

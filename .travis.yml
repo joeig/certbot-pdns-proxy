@@ -2,7 +2,5 @@
 language: go
 go:
   - "1.10.2"
-script:
-  - go get -t -v ./...
-  - diff -u <(echo -n) <(gofmt -d .)
-  - GOOS=linux GOARCH=amd64 go build
+install:
+  - make deps

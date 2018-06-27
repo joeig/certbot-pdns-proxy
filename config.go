@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/spf13/viper"
 	"net/http"
@@ -27,9 +26,7 @@ type Config struct {
 
 var C Config
 
-func parseConfig(config *Config) {
-	configFile := flag.String("config", "config.yaml", "Configuration file")
-	flag.Parse()
+func parseConfig(config *Config, configFile *string) {
 	viper.SetConfigFile(*configFile)
 
 	if err := viper.ReadInConfig(); err != nil {

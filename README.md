@@ -8,10 +8,10 @@ Authentication with regex-based authorization for PowerDNS 4.1, designed for Cer
 
 ### Daemon
 
-Copy the configuration template `config.dist.yaml` and launch the daemon:
+Copy the configuration template `config.dist.yml` and launch the daemon:
 
 ~~~ bash
-./certbot-pdns-proxy --config=/path/to/config.yaml
+./certbot-pdns-proxy --config=/path/to/config.yml
 ~~~
 
 ### CertBot

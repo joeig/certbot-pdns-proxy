@@ -1,4 +1,4 @@
-certbot-pdns-proxy
-config.yaml
+certbot-pdns-proxy*
+config.yml
 server.crt
 server.key

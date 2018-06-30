@@ -6,12 +6,13 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func Authenticate(w http.ResponseWriter, r *http.Request) {
 	fqdn, auth, err := checkAuthorization(r)
 	if err != nil {
-		log.Print("Authentication failed:", err)
+		log.Print("Authentication failed: ", err)
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -25,10 +26,24 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 	validation = strings.Replace(validation, "\"", "\\\"", -1)
 	validation = fmt.Sprintf("\"%s\"", validation)
 
-	pdns := powerdns.NewClient(C.PowerDNS.BaseURL, C.PowerDNS.VHost, auth.Domain, C.PowerDNS.APIKey)
-	if _, err := pdns.AddRecord(fqdn, "TXT", C.Miscellaneous.DefaultTTL, []string{validation}); err != nil {
-		log.Print("Bad PowerDNS API response:", err)
-		w.WriteHeader(http.StatusBadGateway)
+	cAddRecordErr := make(chan error)
+
+	go func() {
+		pdns := powerdns.NewClient(C.PowerDNS.BaseURL, C.PowerDNS.VHost, auth.Domain, C.PowerDNS.APIKey)
+		_, err := pdns.AddRecord(fqdn, "TXT", C.Miscellaneous.DefaultTTL, []string{validation})
+		cAddRecordErr <- err
+	}()
+
+	select {
+	case c := <-cAddRecordErr:
+		if c != nil {
+			log.Print("Bad PowerDNS API response: ", c)
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
+	case <-time.After(10 * time.Second):
+		log.Print("PowerDNS API timeout")
+		w.WriteHeader(http.StatusGatewayTimeout)
 		return
 	}
 

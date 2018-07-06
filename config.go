@@ -45,14 +45,20 @@ type Auth struct {
 	Domain    string `mapstructure:"domain"`
 }
 
-func (a *Auth) CheckPermission(username *string, password *string, fqdn *string) error {
-	if a.Username != *username {
+type AuthFQDN struct {
+	Username string
+	Password string
+	FQDN     string
+}
+
+func (a *Auth) CheckPermission(authFQDN *AuthFQDN) error {
+	if a.Username != authFQDN.Username {
 		return Error{Message: "Wrong username"}
 	}
-	if a.Password != *password {
+	if a.Password != authFQDN.Password {
 		return Error{Message: "Wrong password"}
 	}
-	if matched, _ := regexp.MatchString(a.FQDNRegex, *fqdn); matched != true {
+	if matched, _ := regexp.MatchString(a.FQDNRegex, authFQDN.FQDN); matched != true {
 		return Error{Message: "FQDN not allowed"}
 	}
 	return nil
@@ -71,7 +77,7 @@ func checkAuthorization(r *http.Request) (string, *Auth, error) {
 
 	var auth Auth
 	for _, a := range C.AuthTable {
-		if err := a.CheckPermission(&username, &password, &fqdn); err == nil {
+		if err := a.CheckPermission(&AuthFQDN{Username: username, Password: password, FQDN: fqdn}); err == nil {
 			auth = a
 			break
 		}

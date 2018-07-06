@@ -4,7 +4,9 @@ GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 GOFMT=gofmt
+GODEP=dep
 BINARY_NAME=certbot-pdns-proxy
+GOFILES=$(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
 .DEFAULT_GOAL := all
 .PHONY: all build build-linux-amd64 test check-fmt fmt clean run deps
@@ -21,10 +23,10 @@ test:
 	$(GOTEST) -v ./...
 
 check-fmt:
-	$(GOFMT) -d ./
+	$(GOFMT) -d ${GOFILES}
 
 fmt:
-	$(GOFMT) -w ./
+	$(GOFMT) -w ${GOFILES}
 
 clean:
 	$(GOCLEAN)
@@ -36,4 +38,5 @@ run:
 	./$(BINARY_NAME)
 
 deps:
-	$(GOGET) -t -v ./...
+	$(GODEP) ensure
+

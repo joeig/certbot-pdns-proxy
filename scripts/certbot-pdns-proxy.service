@@ -8,7 +8,6 @@ User=certbotproxy
 Group=certbotproxy
 WorkingDirectory=/opt/certbot-pdns-proxy/
 ExecStart=/opt/certbot-pdns-proxy/certbot-pdns-proxy
-ExecStop=/bin/kill -9 $MAINPID
 RestartSec=15
 Restart=always
 

@@ -2,8 +2,6 @@ package powerdns
 
 import (
 	"strings"
-	"github.com/dghubble/sling"
-	"net/url"
 )
 
 type Zone struct {
@@ -26,6 +24,7 @@ type Zone struct {
 	Zone           string   `json:"zone"`
 	Account        string   `json:"account"`
 	Nameservers    []string `json:"nameservers"`
+	PowerDNSHandle *PowerDNS
 }
 
 type RRset struct {
@@ -53,11 +52,58 @@ type RRsets struct {
 	Sets []RRset `json:"rrsets"`
 }
 
-func (p *PowerDNS) AddRecord(name string, recordType string, ttl int, content []string) (*Zone, error) {
-	return p.ChangeRecord(name, recordType, ttl, content)
+type NotifyResult struct {
+	Result string `json:"result"`
 }
 
-func (p *PowerDNS) ChangeRecord(name string, recordType string, ttl int, content []string) (*Zone, error) {
+func (p *PowerDNS) GetZones() ([]Zone, error) {
+	zones := make([]Zone, 0)
+	error := new(Error)
+	serversSling := p.makeSling()
+	resp, err := serversSling.New().Get("servers/"+p.VHost+"/zones").Receive(&zones, error)
+
+	if err == nil && resp.StatusCode >= 400 {
+		error.Message = strings.Join([]string{resp.Status, error.Message}, " ")
+		return nil, error
+	}
+
+	return zones, err
+}
+
+func (p *PowerDNS) GetZone(domain string) (*Zone, error) {
+	zone := &Zone{}
+	error := new(Error)
+	serversSling := p.makeSling()
+	resp, err := serversSling.New().Get("servers/"+p.VHost+"/zones/"+strings.TrimRight(domain, ".")).Receive(zone, error)
+
+	if err == nil && resp.StatusCode >= 400 {
+		error.Message = strings.Join([]string{resp.Status, error.Message}, " ")
+		return &Zone{}, error
+	}
+
+	zone.PowerDNSHandle = p
+	return zone, err
+}
+
+func (z *Zone) Notify() (*NotifyResult, error) {
+	notifyResult := &NotifyResult{}
+	error := new(Error)
+	serversSling := z.PowerDNSHandle.makeSling()
+	resp, err := serversSling.New().Put(strings.TrimRight(z.URL, ".")+"/notify").Receive(notifyResult, error)
+
+	if err == nil && resp.StatusCode >= 400 {
+		error.Message = strings.Join([]string{resp.Status, error.Message}, " ")
+		return &NotifyResult{}, error
+	}
+
+	return notifyResult, err
+}
+
+func (z *Zone) AddRecord(name string, recordType string, ttl int, content []string) error {
+	return z.ChangeRecord(name, recordType, ttl, content)
+}
+
+func (z *Zone) ChangeRecord(name string, recordType string, ttl int, content []string) error {
 	rrset := new(RRset)
 	rrset.Name = name
 	rrset.Type = recordType
@@ -69,52 +115,40 @@ func (p *PowerDNS) ChangeRecord(name string, recordType string, ttl int, content
 		rrset.Records = append(rrset.Records, r)
 	}
 
-	zone, err := p.patchRRset(*rrset)
-
-	return zone, err
+	return z.patchRRset(*rrset)
 }
 
-func (p *PowerDNS) DeleteRecord(name string, recordType string) (*Zone, error) {
+func (z *Zone) DeleteRecord(name string, recordType string) error {
 	rrset := new(RRset)
 	rrset.Name = name
 	rrset.Type = recordType
 	rrset.ChangeType = "DELETE"
 
-	zone, err := p.patchRRset(*rrset)
-
-	return zone, err
+	return z.patchRRset(*rrset)
 }
 
-func (p *PowerDNS) patchRRset(rrset RRset) (*Zone, error) {
+func (z *Zone) patchRRset(rrset RRset) error {
 	if !strings.HasSuffix(rrset.Name, ".") {
 		rrset.Name += "."
 	}
 
-	json := RRsets{}
-	json.Sets = append(json.Sets, rrset)
+	payload := RRsets{}
+	payload.Sets = append(payload.Sets, rrset)
 
 	error := new(Error)
 	zone := new(Zone)
 
-	resp, err := p.getSling().Patch(p.domain).BodyJSON(json).Receive(zone, error)
+	zonesSling := z.PowerDNSHandle.makeSling()
+	resp, err := zonesSling.New().Patch(strings.TrimRight(z.URL, ".")).BodyJSON(payload).Receive(zone, error)
 
 	if err == nil && resp.StatusCode >= 400 {
 		error.Message = strings.Join([]string{resp.Status, error.Message}, " ")
-		return nil, error
+		return error
 	}
 
-	return zone, err
-}
+	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
+		return nil
+	}
 
-func (p *PowerDNS) getSling() *sling.Sling {
-	u := new(url.URL)
-	u.Host = p.hostname + ":" + p.port
-	u.Scheme = p.scheme
-	u.Path = "/api/v1/servers/" + p.vhost + "/zones/"
-
-	Sling := sling.New().Base(u.String())
-
-	Sling.Set("X-API-Key", p.apikey)
-
-	return Sling
+	return err
 }

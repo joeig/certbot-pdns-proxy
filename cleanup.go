@@ -18,8 +18,9 @@ func Cleanup(w http.ResponseWriter, r *http.Request) {
 	cDeleteRecordErr := make(chan error)
 
 	go func() {
-		pdns := powerdns.NewClient(C.PowerDNS.BaseURL, C.PowerDNS.VHost, auth.Domain, C.PowerDNS.APIKey)
-		_, err := pdns.DeleteRecord(fqdn, "TXT")
+		pdns := powerdns.NewClient(C.PowerDNS.BaseURL, C.PowerDNS.VHost, C.PowerDNS.APIKey)
+		zone, _ := pdns.GetZone(auth.Domain)
+		err := zone.DeleteRecord(fqdn, "TXT")
 		cDeleteRecordErr <- err
 	}()
 

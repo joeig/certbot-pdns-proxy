@@ -1,21 +1,53 @@
 ---
-version: '3'
+version: '3.3'
+
 services:
-  mysql:
-    image: mariadb:10.1
+  mariadb:
+    image: mariadb:10.3
+    volumes:
+    - mariadb_data:/var/lib/mysql
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: supersecret
-  pdns:
-    image: psitrax/powerdns
-    ports:
-      - "8080:80"
-      - "53:53"
-      - "53:53/udp"
-    environment:
-      MYSQL_USER: root
-      MYSQL_PASS: supersecret
-    command: --webserver=yes --webserver-address=0.0.0.0 --webserver-port=80 --webserver-password=webserversecret --webserver-allow-from=0.0.0.0/0 --api=yes --api-key=secret --api-readonly=no --loglevel=7
-    links:
-      - mysql
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: powerdns
+      MYSQL_USER: powerdns
+      MYSQL_PASSWORD: powerdns
+
+  powerdns:
     depends_on:
-      - mysql
+    - mariadb
+    image: psitrax/powerdns:4.1
+    ports:
+    - "8053:53"
+    - "8053:53/udp"
+    - "8080:80"
+    links:
+    - mariadb
+    volumes:
+    - ./scripts/init_docker_fixtures.sh:/init_docker_fixtures.sh:ro
+    restart: always
+    environment:
+      MYSQL_HOST: mariadb
+      MYSQL_DB: powerdns
+      MYSQL_USER: powerdns
+      MYSQL_PASS: powerdns
+    command: [
+      "--webserver=yes",
+      "--webserver-address=0.0.0.0",
+      "--webserver-port=80",
+      "--webserver-password=webserverpw",
+      "--webserver-allow-from=0.0.0.0/0",
+      "--api=yes",
+      "--api-key=apipw",
+      "--api-readonly=no",
+      "--disable-syslog=yes",
+      "--loglevel=9",
+      "--log-dns-queries=yes",
+      "--log-dns-details=yes",
+      "--query-logging=yes",
+      "--default-soa-edit=INCEPTION-INCREMENT",
+      "--gmysql-dnssec=yes"
+    ]
+
+volumes:
+  mariadb_data:

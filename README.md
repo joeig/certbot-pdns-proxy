@@ -3,18 +3,29 @@
 Authentication with regex-based authorization for PowerDNS 4.1, designed for CertBot.
 
 [![Build Status](https://travis-ci.org/joeig/certbot-pdns-proxy.svg?branch=master)](https://travis-ci.org/joeig/certbot-pdns-proxy)
+[![Go Report Card](https://goreportcard.com/badge/github.com/joeig/certbot-pdns-proxy)](https://goreportcard.com/report/github.com/joeig/certbot-pdns-proxy)
+
+## Setup
+
+### Install from source
+
+You need `go` and `GOBIN` in your `PATH`. Once that is done, install dyndns-pdns using the following command:
+
+~~~ bash
+go get -u github.com/joeig/certbot-pdns-proxy
+~~~
+
+After that, copy [`config.dist.yml`](config.dist.yml) to `config.yml`, replace the default settings and run the binary:
+
+~~~ bash
+certbot-pdns-proxy -config=/path/to/config.yml
+~~~
+
+If you're intending to add the application to your systemd runlevel, you may want to take a look at [`scripts/certbot-pdns-proxy.service`](scripts/certbot-pdns-proxy.service).
 
 ## Usage
 
-### Daemon
-
-Copy the configuration template `config.dist.yml` and launch the daemon:
-
-~~~ bash
-./certbot-pdns-proxy --config=/path/to/config.yml
-~~~
-
-### CertBot
+### Use in combination with CertBot
 
 Deploy `scripts/authenticator.sh` and `scripts/cleanup.sh` on your servers and change the proxy URL.
 

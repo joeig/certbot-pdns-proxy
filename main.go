@@ -8,10 +8,12 @@ import (
 	"net/http"
 )
 
+// Error contains information regarding a certain error
 type Error struct {
 	Message string
 }
 
+// Error returns an error message string
 func (e Error) Error() string {
 	return fmt.Sprintf("%v", e.Message)
 }

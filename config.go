@@ -7,6 +7,7 @@ import (
 	"regexp"
 )
 
+// Config contains the primary configuration structure of the application
 type Config struct {
 	Server struct {
 		ListenAddress string `mapstructure:"listenaddress"`
@@ -24,6 +25,7 @@ type Config struct {
 	AuthTable []Auth `mapstructure:"authTable"`
 }
 
+// C initializes the primary configuration of the application
 var C Config
 
 func parseConfig(config *Config, configFile *string) {
@@ -38,6 +40,7 @@ func parseConfig(config *Config, configFile *string) {
 	}
 }
 
+// Auth defines the structure of a certain authentication item
 type Auth struct {
 	Username  string `mapstructure:"username"`
 	Password  string `mapstructure:"password"`
@@ -45,12 +48,14 @@ type Auth struct {
 	Domain    string `mapstructure:"domain"`
 }
 
+// AuthFQDN defines the structure of a FQDN item
 type AuthFQDN struct {
 	Username string
 	Password string
 	FQDN     string
 }
 
+// CheckPermission validates the permission of a certain FQDN item
 func (a *Auth) CheckPermission(authFQDN *AuthFQDN) error {
 	if a.Username != authFQDN.Username {
 		return Error{Message: "Wrong username"}

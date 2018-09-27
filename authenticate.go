@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// Authenticate handles authentication requests
 func Authenticate(w http.ResponseWriter, r *http.Request) {
 	fqdn, auth, err := checkAuthorization(r)
 	if err != nil {

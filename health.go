@@ -5,10 +5,12 @@ import (
 	"net/http"
 )
 
+// HealthStatus contains information regarding the healthiness of the application
 type HealthStatus struct {
 	ApplicationRunning bool
 }
 
+// Health route
 func Health(w http.ResponseWriter, r *http.Request) {
 	var hs HealthStatus
 	hs.ApplicationRunning = true

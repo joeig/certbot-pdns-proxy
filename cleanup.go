@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Cleanup handles clean up requests
 func Cleanup(w http.ResponseWriter, r *http.Request) {
 	fqdn, auth, err := checkAuthorization(r)
 	if err != nil {

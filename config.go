@@ -63,7 +63,7 @@ func (a *Auth) CheckPermission(authFQDN *AuthFQDN) error {
 	if a.Password != authFQDN.Password {
 		return Error{Message: "Wrong password"}
 	}
-	if matched, _ := regexp.MatchString(a.FQDNRegex, authFQDN.FQDN); matched != true {
+	if matched, _ := regexp.MatchString(a.FQDNRegex, authFQDN.FQDN); !matched {
 		return Error{Message: "FQDN not allowed"}
 	}
 	return nil
@@ -76,7 +76,7 @@ func checkAuthorization(r *http.Request) (string, *Auth, error) {
 	}
 
 	username, password, ok := r.BasicAuth()
-	if ok != true {
+	if !ok {
 		return "", new(Auth), Error{Message: "Authentication header missing"}
 	}
 

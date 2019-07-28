@@ -14,10 +14,10 @@ GOFILES=$(shell find . -type f -name '*.go' -not -path "./vendor/*")
 all: check-fmt fmt test build
 
 build:
-	$(GOBUILD) -o $(BINARY_NAME) -v
+	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/certbot-pdns-proxy
 
 build-linux-amd64:
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_NAME)_linux_amd64 -v
+	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_NAME)_linux_amd64 -v ./cmd/certbot-pdns-proxy
 
 test:
 	$(GOTEST) -v ./...
@@ -39,4 +39,3 @@ run:
 
 deps:
 	$(GODEP) ensure
-

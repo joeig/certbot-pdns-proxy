@@ -15,13 +15,13 @@ You need `go` and `GOBIN` in your `PATH`. Once that is done, install dyndns-pdns
 go get -u github.com/joeig/certbot-pdns-proxy
 ~~~
 
-After that, copy [`config.dist.yml`](config.dist.yml) to `config.yml`, replace the default settings and run the binary:
+After that, copy [`config.dist.yml`](configs/config.dist.yml) to `config.yml`, replace the default settings and run the binary:
 
 ~~~ bash
 certbot-pdns-proxy -config=/path/to/config.yml
 ~~~
 
-If you're intending to add the application to your systemd runlevel, you may want to take a look at [`scripts/certbot-pdns-proxy.service`](scripts/certbot-pdns-proxy.service).
+If you're intending to add the application to your systemd runlevel, you may want to take a look at [`init/certbot-pdns-proxy.service`](init/certbot-pdns-proxy.service).
 
 ## Usage
 

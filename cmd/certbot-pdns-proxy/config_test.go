@@ -4,7 +4,7 @@ import "testing"
 
 func TestParseConfig(t *testing.T) {
 	var config Config
-	configFile := "config.dist.yml"
+	configFile := "../../configs/config.dist.yml"
 	parseConfig(&config, &configFile)
 	if config.Server.ListenAddress == "" || config.PowerDNS.BaseURL == "" {
 		t.Error("Config parser not working")
@@ -13,7 +13,7 @@ func TestParseConfig(t *testing.T) {
 
 func TestAuthCheckPermissionOK(t *testing.T) {
 	var config Config
-	configFile := "config.dist.yml"
+	configFile := "../../configs/config.dist.yml"
 	parseConfig(&config, &configFile)
 	err := config.AuthTable[0].CheckPermission(&AuthFQDN{Username: "foo", Password: "bar", FQDN: "_acme-challenge.abc.example.com"})
 	if err != nil {
@@ -23,7 +23,7 @@ func TestAuthCheckPermissionOK(t *testing.T) {
 
 func TestAuthCheckPermissionNotOK(t *testing.T) {
 	var config Config
-	configFile := "config.dist.yml"
+	configFile := "../../configs/config.dist.yml"
 	parseConfig(&config, &configFile)
 	err := config.AuthTable[0].CheckPermission(&AuthFQDN{Username: "foo", Password: "bar", FQDN: "_acme-challenge.abc.example.com"})
 	if err != nil {
